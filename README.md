@@ -62,27 +62,107 @@ can be designed and implemented, including:
 
 ![Order Placement & Settlement Flow](docs/atlasx-sequence-order-flow.png)
 
+## 🚀 Quick Demo (End-to-End)
 
-## 🧱 Architecture Overview
+This section demonstrates a minimal end-to-end trading flow using the REST API.
+The goal is to show how **risk checks, matching, ledger settlement, events, and idempotency**
+work together in a realistic exchange scenario.
 
-API Layer (ASP.NET Core)
-├─ Authentication & Authorization
-├─ Idempotency Handling
-├─ REST & WebSocket Endpoints
-│
-Application Core
-├─ Matching Engine (AtlasX.Matching)
-├─ Risk Engine (AtlasX.Risk)
-├─ Ledger & Settlement (AtlasX.Ledger)
-│
-Infrastructure
-├─ Event Bus & Outbox
-├─ RabbitMQ Publisher
-├─ Observability
+### Prerequisites
+- Docker & Docker Compose running
+- API started locally
+- A valid JWT token with scopes `trade wallet`
+- A client identifier header (`X-Client-Id`)
 
+---
 
-> ⚠️ Persistence is intentionally **in-memory** to keep the focus on
-> exchange logic, determinism, and system design.
+### 1️⃣ Deposit Funds
+
+Deposit quote currency (USD) for the buyer and base currency (BTC) for the seller.
+
+```bash
+curl -X POST http://localhost:5000/api/wallets/deposit \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -H "X-Client-Id: buyer-1" \
+  -H "Content-Type: application/json" \
+  -d '{ "asset": "USD", "amount": 50000 }'
+
+curl -X POST http://localhost:5000/api/wallets/deposit \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -H "X-Client-Id: seller-1" \
+  -H "Content-Type: application/json" \
+  -d '{ "asset": "BTC", "amount": 1.0 }'
+```
+## 2️⃣ Place a SELL Limit Order (Maker)
+```bash
+curl -X POST http://localhost:5000/api/orders \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -H "X-Client-Id: seller-1" \
+  -H "Idempotency-Key: sell-order-1" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symbol": "BTC-USD",
+    "side": "SELL",
+    "type": "LIMIT",
+    "quantity": 0.5,
+    "price": 42000
+  }'
+```
+**Expected result:**
+- Order is accepted
+- Funds are moved from available → reserved
+- Order rests on the order book
+
+## 3️⃣ Place a BUY Limit Order (Taker)
+```bash
+curl -X POST http://localhost:5000/api/orders \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -H "X-Client-Id: buyer-1" \
+  -H "Idempotency-Key: buy-order-1" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symbol": "BTC-USD",
+    "side": "BUY",
+    "type": "LIMIT",
+    "quantity": 0.5,
+    "price": 42000
+  }'
+```
+**Expected result:**
+- Orders are matched using price-time priority
+- Trade is executed at maker price
+- Ledger settlement occurs:
+  - Buyer: USD reserved → BTC credited
+  - Seller: BTC reserved → USD credited
+- Domain events are enqueued and published
+- WebSocket clients receive trade updates
+
+## 4️⃣ Check Wallet Balances
+```bash
+curl -X GET http://localhost:5000/api/wallets/balances \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -H "X-Client-Id: buyer-1"
+
+curl -X GET http://localhost:5000/api/wallets/balances \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -H "X-Client-Id: seller-1"
+```
+**You should observe:**
+- Correct available / reserved balances
+- Settled trade reflected in both accounts
+
+## 5️⃣ Idempotency Check (Optional)
+```bash
+curl -X POST http://localhost:5000/api/orders \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -H "X-Client-Id: buyer-1" \
+  -H "Idempotency-Key: buy-order-1" \
+  -H "Content-Type: application/json" \
+  -d '{ ...same payload... }'
+```
+**Expected result:**
+- Same response is returned
+- No duplicate trades or balance changes occur
 
 ---
 
