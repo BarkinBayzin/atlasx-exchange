@@ -54,6 +54,14 @@ can be designed and implemented, including:
 - Idempotency handling for order requests
 
 ---
+## Architecture Diagram
+
+![AtlasX Exchange Architecture](docs/atlasx-architecture.png)
+
+## Order Flow Diagram
+
+![Order Placement & Settlement Flow](docs/atlasx-sequence-order-flow.png)
+
 
 ## 🧱 Architecture Overview
 
