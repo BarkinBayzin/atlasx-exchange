@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: atlasx-postgres
+    environment:
+      POSTGRES_USER: atlasx
+      POSTGRES_PASSWORD: atlasx
+      POSTGRES_DB: atlasx
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    container_name: atlasx-redis
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: atlasx-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: atlasx
+      RABBITMQ_DEFAULT_PASS: atlasx
+    ports:
+      - "5672:5672"
+      - "15672:15672"

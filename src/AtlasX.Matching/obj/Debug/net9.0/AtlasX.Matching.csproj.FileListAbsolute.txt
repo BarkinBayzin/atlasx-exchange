@@ -1,0 +1,11 @@
+C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Matching\bin\Debug\net9.0\AtlasX.Matching.deps.json
+C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Matching\bin\Debug\net9.0\AtlasX.Matching.dll
+C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Matching\bin\Debug\net9.0\AtlasX.Matching.pdb
+C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Matching\obj\Debug\net9.0\AtlasX.Matching.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Matching\obj\Debug\net9.0\AtlasX.Matching.AssemblyInfoInputs.cache
+C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Matching\obj\Debug\net9.0\AtlasX.Matching.AssemblyInfo.cs
+C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Matching\obj\Debug\net9.0\AtlasX.Matching.csproj.CoreCompileInputs.cache
+C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Matching\obj\Debug\net9.0\AtlasX.Matching.dll
+C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Matching\obj\Debug\net9.0\refint\AtlasX.Matching.dll
+C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Matching\obj\Debug\net9.0\AtlasX.Matching.pdb
+C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Matching\obj\Debug\net9.0\ref\AtlasX.Matching.dll

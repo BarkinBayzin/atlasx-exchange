@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.11" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AtlasX.Matching\AtlasX.Matching.csproj" />
+    <ProjectReference Include="..\AtlasX.Ledger\AtlasX.Ledger.csproj" />
+    <ProjectReference Include="..\AtlasX.Risk\AtlasX.Risk.csproj" />
+    <ProjectReference Include="..\AtlasX.Infrastructure\AtlasX.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
