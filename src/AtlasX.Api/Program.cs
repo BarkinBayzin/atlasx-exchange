@@ -4,11 +4,24 @@ using AtlasX.Infrastructure;
 using AtlasX.Ledger;
 using AtlasX.Matching;
 using AtlasX.Risk;
+using System.Diagnostics;
 using System.Net.WebSockets;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+using Serilog;
+using Serilog.Context;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, loggerConfig) =>
+{
+    loggerConfig
+        .MinimumLevel.Information()
+        .Enrich.FromLogContext()
+        .WriteTo.Console();
+});
 
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
@@ -29,6 +42,16 @@ builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
 builder.Services.AddHostedService<OutboxPublisherService>();
 builder.Services.AddSingleton<MarketWebSocketManager>();
 builder.Services.AddHostedService<MarketWebSocketHeartbeatService>();
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing =>
+        tracing
+            .AddAspNetCoreInstrumentation()
+            .AddSource(Observability.ActivitySourceName))
+    .WithMetrics(metrics =>
+        metrics
+            .AddAspNetCoreInstrumentation()
+            .AddMeter(Observability.MeterName)
+            .AddPrometheusExporter());
 
 var app = builder.Build();
 
@@ -39,9 +62,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseSerilogRequestLogging();
+app.Use(async (context, next) =>
+{
+    using (LogContext.PushProperty("TraceId", Activity.Current?.TraceId.ToString() ?? context.TraceIdentifier))
+    {
+        await next();
+    }
+});
+
 app.UseWebSockets();
 
 app.MapGet("/health", () => Results.Ok(new { service = "AtlasX", status = "OK" }));
+app.MapPrometheusScrapingEndpoint("/metrics");
 
 app.MapPost("/api/orders", async (
     [FromBody] PlaceOrderRequest req,
@@ -52,7 +85,8 @@ app.MapPost("/api/orders", async (
     ConcurrentDictionary<string, AccountId> accountIds,
     ConcurrentDictionary<Guid, OrderOwner> orderOwners,
     IOutbox outbox,
-    MarketWebSocketManager marketWebSocketManager) =>
+    MarketWebSocketManager marketWebSocketManager,
+    ILogger<Program> logger) =>
 {
     if (req is null)
     {
@@ -147,6 +181,15 @@ app.MapPost("/api/orders", async (
         req.price,
         DateTime.UtcNow);
 
+    logger.LogInformation(
+        "Order accepted {OrderId} {Symbol} {Side} {Type} {Quantity} {Price}",
+        order.Id,
+        order.Symbol,
+        order.Side,
+        order.Type,
+        order.Quantity,
+        order.Price);
+
     outbox.Enqueue(new OrderAccepted(
         Guid.NewGuid(),
         DateTime.UtcNow,
@@ -159,7 +202,17 @@ app.MapPost("/api/orders", async (
 
     orderOwners[order.Id] = new OrderOwner(accountId, side, type, req.price);
     var book = books.GetOrAdd(symbol, key => new OrderBook(key));
+    using var activity = Observability.ActivitySource.StartActivity("MatchOrder");
+    activity?.SetTag("symbol", order.Symbol);
+    activity?.SetTag("order.id", order.Id);
+    activity?.SetTag("order.side", order.Side.ToString());
+    activity?.SetTag("order.type", order.Type.ToString());
+
+    var started = Stopwatch.GetTimestamp();
     var result = book.AddOrder(order);
+    var elapsedMs = Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+    Observability.OrderProcessingMs.Record(elapsedMs);
+    Observability.OrdersPlaced.Add(1);
 
     var status = ApiHelpers.ResolveStatus(order.Quantity, order.RemainingQuantity, result.Trades.Count);
     var tradeResponses = result.Trades.Select(trade => new TradeResponse(
@@ -175,6 +228,7 @@ app.MapPost("/api/orders", async (
 
     if (result.Trades.Count > 0)
     {
+        Observability.TradesExecuted.Add(result.Trades.Count);
         outbox.Enqueue(new OrderMatched(
             Guid.NewGuid(),
             DateTime.UtcNow,
