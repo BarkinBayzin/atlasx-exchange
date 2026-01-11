@@ -9,3 +9,4 @@ C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Matching\obj\Debug\net9.0\Atl
 C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Matching\obj\Debug\net9.0\refint\AtlasX.Matching.dll
 C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Matching\obj\Debug\net9.0\AtlasX.Matching.pdb
 C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Matching\obj\Debug\net9.0\ref\AtlasX.Matching.dll
+C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Matching\obj\Debug\net9.0\AtlasX.Matching.sourcelink.json

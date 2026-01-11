@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AtlasX.Matching")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7bb30b7fc57e478d71f7393474060147273936a4")]
 [assembly: System.Reflection.AssemblyProductAttribute("AtlasX.Matching")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AtlasX.Matching")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

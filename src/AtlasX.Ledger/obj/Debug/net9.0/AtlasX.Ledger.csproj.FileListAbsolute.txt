@@ -9,3 +9,4 @@ C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Ledger\obj\Debug\net9.0\Atlas
 C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Ledger\obj\Debug\net9.0\refint\AtlasX.Ledger.dll
 C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Ledger\obj\Debug\net9.0\AtlasX.Ledger.pdb
 C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Ledger\obj\Debug\net9.0\ref\AtlasX.Ledger.dll
+C:\Users\bayzi\Projects\atlasx-exchange\src\AtlasX.Ledger\obj\Debug\net9.0\AtlasX.Ledger.sourcelink.json

@@ -4,27 +4,112 @@
     "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\tests\\AtlasX.Api.Tests\\AtlasX.Api.Tests.csproj": {}
   },
   "projects": {
-    "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\tests\\AtlasX.Api.Tests\\AtlasX.Api.Tests.csproj": {
+    "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Api\\AtlasX.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\tests\\AtlasX.Api.Tests\\AtlasX.Api.Tests.csproj",
-        "projectName": "AtlasX.Api.Tests",
-        "projectPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\tests\\AtlasX.Api.Tests\\AtlasX.Api.Tests.csproj",
+        "projectUniqueName": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Api\\AtlasX.Api.csproj",
+        "projectName": "AtlasX.Api",
+        "projectPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Api\\AtlasX.Api.csproj",
         "packagesPath": "C:\\Users\\bayzi\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\tests\\AtlasX.Api.Tests\\obj\\",
+        "outputPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Api\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\bayzi\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
-          "net9.0"
+          "net8.0"
         ],
         "sources": {
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net9.0": {
-            "targetAlias": "net9.0",
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Infrastructure\\AtlasX.Infrastructure.csproj": {
+                "projectPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Infrastructure\\AtlasX.Infrastructure.csproj"
+              },
+              "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Ledger\\AtlasX.Ledger.csproj": {
+                "projectPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Ledger\\AtlasX.Ledger.csproj"
+              },
+              "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Matching\\AtlasX.Matching.csproj": {
+                "projectPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Matching\\AtlasX.Matching.csproj"
+              },
+              "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Risk\\AtlasX.Risk.csproj": {
+                "projectPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Risk\\AtlasX.Risk.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.OpenApi": {
+              "target": "Package",
+              "version": "[8.0.11, )"
+            },
+            "Swashbuckle.AspNetCore": {
+              "target": "Package",
+              "version": "[7.3.1, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Infrastructure\\AtlasX.Infrastructure.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Infrastructure\\AtlasX.Infrastructure.csproj",
+        "projectName": "AtlasX.Infrastructure",
+        "projectPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Infrastructure\\AtlasX.Infrastructure.csproj",
+        "packagesPath": "C:\\Users\\bayzi\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Infrastructure\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\bayzi\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
             "projectReferences": {}
           }
         },
@@ -41,9 +126,267 @@
         "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
-        "net9.0": {
-          "targetAlias": "net9.0",
+        "net8.0": {
+          "targetAlias": "net8.0",
           "dependencies": {
+            "Microsoft.Extensions.Logging.Abstractions": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "RabbitMQ.Client": {
+              "target": "Package",
+              "version": "[6.8.1, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Ledger\\AtlasX.Ledger.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Ledger\\AtlasX.Ledger.csproj",
+        "projectName": "AtlasX.Ledger",
+        "projectPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Ledger\\AtlasX.Ledger.csproj",
+        "packagesPath": "C:\\Users\\bayzi\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Ledger\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\bayzi\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Matching\\AtlasX.Matching.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Matching\\AtlasX.Matching.csproj",
+        "projectName": "AtlasX.Matching",
+        "projectPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Matching\\AtlasX.Matching.csproj",
+        "packagesPath": "C:\\Users\\bayzi\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Matching\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\bayzi\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Risk\\AtlasX.Risk.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Risk\\AtlasX.Risk.csproj",
+        "projectName": "AtlasX.Risk",
+        "projectPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Risk\\AtlasX.Risk.csproj",
+        "packagesPath": "C:\\Users\\bayzi\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Risk\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\bayzi\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Matching\\AtlasX.Matching.csproj": {
+                "projectPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Matching\\AtlasX.Matching.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\tests\\AtlasX.Api.Tests\\AtlasX.Api.Tests.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\tests\\AtlasX.Api.Tests\\AtlasX.Api.Tests.csproj",
+        "projectName": "AtlasX.Api.Tests",
+        "projectPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\tests\\AtlasX.Api.Tests\\AtlasX.Api.Tests.csproj",
+        "packagesPath": "C:\\Users\\bayzi\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\tests\\AtlasX.Api.Tests\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\bayzi\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Api\\AtlasX.Api.csproj": {
+                "projectPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Api\\AtlasX.Api.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.Mvc.Testing": {
+              "target": "Package",
+              "version": "[8.0.11, )"
+            },
             "Microsoft.NET.Test.Sdk": {
               "target": "Package",
               "version": "[17.12.0, )"

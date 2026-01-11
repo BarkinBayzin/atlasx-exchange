@@ -4,27 +4,27 @@
     "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Risk\\AtlasX.Risk.csproj": {}
   },
   "projects": {
-    "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Risk\\AtlasX.Risk.csproj": {
+    "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Matching\\AtlasX.Matching.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Risk\\AtlasX.Risk.csproj",
-        "projectName": "AtlasX.Risk",
-        "projectPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Risk\\AtlasX.Risk.csproj",
+        "projectUniqueName": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Matching\\AtlasX.Matching.csproj",
+        "projectName": "AtlasX.Matching",
+        "projectPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Matching\\AtlasX.Matching.csproj",
         "packagesPath": "C:\\Users\\bayzi\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Risk\\obj\\",
+        "outputPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Matching\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\bayzi\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
-          "net9.0"
+          "net8.0"
         ],
         "sources": {
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net9.0": {
-            "targetAlias": "net9.0",
+          "net8.0": {
+            "targetAlias": "net8.0",
             "projectReferences": {}
           }
         },
@@ -41,8 +41,71 @@
         "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
-        "net9.0": {
-          "targetAlias": "net9.0",
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Risk\\AtlasX.Risk.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Risk\\AtlasX.Risk.csproj",
+        "projectName": "AtlasX.Risk",
+        "projectPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Risk\\AtlasX.Risk.csproj",
+        "packagesPath": "C:\\Users\\bayzi\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Risk\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\bayzi\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Matching\\AtlasX.Matching.csproj": {
+                "projectPath": "C:\\Users\\bayzi\\Projects\\atlasx-exchange\\src\\AtlasX.Matching\\AtlasX.Matching.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
           "imports": [
             "net461",
             "net462",
