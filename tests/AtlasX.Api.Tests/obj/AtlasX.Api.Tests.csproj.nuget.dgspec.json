@@ -387,6 +387,10 @@
               "target": "Package",
               "version": "[8.0.11, )"
             },
+            "Microsoft.AspNetCore.TestHost": {
+              "target": "Package",
+              "version": "[8.0.11, )"
+            },
             "Microsoft.NET.Test.Sdk": {
               "target": "Package",
               "version": "[17.12.0, )"

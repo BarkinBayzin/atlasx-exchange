@@ -4,6 +4,7 @@ using AtlasX.Infrastructure;
 using AtlasX.Ledger;
 using AtlasX.Matching;
 using AtlasX.Risk;
+using System.Net.WebSockets;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 
@@ -26,6 +27,8 @@ builder.Services.AddSingleton(new ConcurrentDictionary<Guid, OrderOwner>());
 builder.Services.AddSingleton<IOutbox, InMemoryOutbox>();
 builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
 builder.Services.AddHostedService<OutboxPublisherService>();
+builder.Services.AddSingleton<MarketWebSocketManager>();
+builder.Services.AddHostedService<MarketWebSocketHeartbeatService>();
 
 var app = builder.Build();
 
@@ -36,9 +39,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseWebSockets();
+
 app.MapGet("/health", () => Results.Ok(new { service = "AtlasX", status = "OK" }));
 
-app.MapPost("/api/orders", (
+app.MapPost("/api/orders", async (
     [FromBody] PlaceOrderRequest req,
     [FromHeader(Name = "X-Client-Id")] string? clientId,
     ConcurrentDictionary<string, OrderBook> books,
@@ -46,7 +51,8 @@ app.MapPost("/api/orders", (
     ILedgerService ledgerService,
     ConcurrentDictionary<string, AccountId> accountIds,
     ConcurrentDictionary<Guid, OrderOwner> orderOwners,
-    IOutbox outbox) =>
+    IOutbox outbox,
+    MarketWebSocketManager marketWebSocketManager) =>
 {
     if (req is null)
     {
@@ -164,6 +170,9 @@ app.MapPost("/api/orders", (
         trade.TakerOrderId,
         trade.ExecutedAtUtc)).ToList();
 
+    var snapshot = book.Snapshot(10);
+    await marketWebSocketManager.BroadcastOrderBookAsync(order.Symbol, ApiHelpers.MapSnapshot(snapshot));
+
     if (result.Trades.Count > 0)
     {
         outbox.Enqueue(new OrderMatched(
@@ -190,6 +199,8 @@ app.MapPost("/api/orders", (
         {
             outbox.Enqueue(balanceEvent);
         }
+
+        await marketWebSocketManager.BroadcastTradesAsync(order.Symbol, result.Trades);
 
         ApiHelpers.SettleTrades(ledgerService, orderOwners, assetPair, result.Trades);
         var lastTrade = result.Trades[^1];
@@ -249,6 +260,62 @@ app.MapGet("/api/orderbook/{symbol}", (
     var snapshot = book.Snapshot(resolvedDepth);
     return Results.Ok(ApiHelpers.MapSnapshot(snapshot));
 }).WithOpenApi();
+
+app.MapGet("/ws/market", async (
+    HttpContext context,
+    ConcurrentDictionary<string, OrderBook> books,
+    MarketWebSocketManager marketWebSocketManager) =>
+{
+    if (!context.WebSockets.IsWebSocketRequest)
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        return;
+    }
+
+    var symbol = context.Request.Query["symbol"].ToString().Trim();
+    if (string.IsNullOrWhiteSpace(symbol))
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        return;
+    }
+
+    var depthValue = context.Request.Query["depth"].ToString();
+    var depth = 10;
+    if (!string.IsNullOrWhiteSpace(depthValue) && int.TryParse(depthValue, out var parsedDepth))
+    {
+        depth = parsedDepth;
+    }
+
+    using var socket = await context.WebSockets.AcceptWebSocketAsync();
+    var connectionId = marketWebSocketManager.AddClient(symbol, socket);
+    try
+    {
+        if (!books.TryGetValue(symbol, out var book))
+        {
+            var emptySnapshot = new OrderBookSnapshot(symbol, Array.Empty<OrderBookLevel>(), Array.Empty<OrderBookLevel>());
+            await marketWebSocketManager.SendSnapshotAsync(connectionId, symbol, ApiHelpers.MapSnapshot(emptySnapshot));
+        }
+        else
+        {
+            var snapshot = book.Snapshot(depth);
+            await marketWebSocketManager.SendSnapshotAsync(connectionId, symbol, ApiHelpers.MapSnapshot(snapshot));
+        }
+
+        var buffer = new byte[1024];
+        while (socket.State == WebSocketState.Open)
+        {
+            var result = await socket.ReceiveAsync(buffer, CancellationToken.None);
+            if (result.MessageType == WebSocketMessageType.Close)
+            {
+                break;
+            }
+        }
+    }
+    finally
+    {
+        marketWebSocketManager.RemoveClient(symbol, connectionId);
+    }
+});
 
 app.MapPost("/api/wallets/deposit", (
     [FromBody] DepositRequest req,

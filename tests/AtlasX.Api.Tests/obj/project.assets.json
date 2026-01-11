@@ -3294,6 +3294,7 @@
     "net8.0": [
       "AtlasX.Api >= 1.0.0",
       "Microsoft.AspNetCore.Mvc.Testing >= 8.0.11",
+      "Microsoft.AspNetCore.TestHost >= 8.0.11",
       "Microsoft.NET.Test.Sdk >= 17.12.0",
       "coverlet.collector >= 6.0.2",
       "xunit >= 2.9.2",
@@ -3348,6 +3349,10 @@
         "targetAlias": "net8.0",
         "dependencies": {
           "Microsoft.AspNetCore.Mvc.Testing": {
+            "target": "Package",
+            "version": "[8.0.11, )"
+          },
+          "Microsoft.AspNetCore.TestHost": {
             "target": "Package",
             "version": "[8.0.11, )"
           },

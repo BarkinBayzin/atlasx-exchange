@@ -20,3 +20,9 @@ exchange-core fundamentals and production-grade backend architecture.
 ## Run
 docker compose up -d
 dotnet run --project src/AtlasX.Api
+
+## WebSocket market data
+Use `wscat` to connect and receive snapshots/trades:
+```bash
+wscat -c ws://localhost:5000/ws/market?symbol=BTC-USD
+```
