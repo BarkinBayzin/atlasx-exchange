@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace AtlasX.Api.Tests;
@@ -11,9 +12,11 @@ public class OrderBookIntegrationTests
         using var factory = new WebApplicationFactory<Program>();
         var sellerClient = factory.CreateClient();
         sellerClient.DefaultRequestHeaders.Add("X-Client-Id", "seller-1");
+        ApplyAuth(sellerClient, "trade", "wallet");
 
         var buyerClient = factory.CreateClient();
         buyerClient.DefaultRequestHeaders.Add("X-Client-Id", "buyer-1");
+        ApplyAuth(buyerClient, "trade", "wallet");
 
         var sellerDeposit = await sellerClient.PostAsJsonAsync("/api/wallets/deposit", new DepositRequest("BTC", 1m));
         sellerDeposit.EnsureSuccessStatusCode();
@@ -22,11 +25,11 @@ public class OrderBookIntegrationTests
         buyerDeposit.EnsureSuccessStatusCode();
 
         var sell = new PlaceOrderRequest("BTC-USD", "SELL", "LIMIT", 1m, 100m);
-        var sellResponse = await sellerClient.PostAsJsonAsync("/api/orders", sell);
+        var sellResponse = await PostOrderAsync(sellerClient, sell, Guid.NewGuid().ToString());
         sellResponse.EnsureSuccessStatusCode();
 
         var buy = new PlaceOrderRequest("BTC-USD", "BUY", "LIMIT", 1m, 100m);
-        var buyResponse = await buyerClient.PostAsJsonAsync("/api/orders", buy);
+        var buyResponse = await PostOrderAsync(buyerClient, buy, Guid.NewGuid().ToString());
         buyResponse.EnsureSuccessStatusCode();
 
         var buyResult = await buyResponse.Content.ReadFromJsonAsync<OrderResponse>();
@@ -43,9 +46,11 @@ public class OrderBookIntegrationTests
         using var factory = new WebApplicationFactory<Program>();
         var sellerClient = factory.CreateClient();
         sellerClient.DefaultRequestHeaders.Add("X-Client-Id", "seller-1");
+        ApplyAuth(sellerClient, "trade", "wallet");
 
         var buyerClient = factory.CreateClient();
         buyerClient.DefaultRequestHeaders.Add("X-Client-Id", "buyer-1");
+        ApplyAuth(buyerClient, "trade", "wallet");
 
         var sellerDeposit = await sellerClient.PostAsJsonAsync("/api/wallets/deposit", new DepositRequest("BTC", 2m));
         sellerDeposit.EnsureSuccessStatusCode();
@@ -54,11 +59,11 @@ public class OrderBookIntegrationTests
         buyerDeposit.EnsureSuccessStatusCode();
 
         var sell = new PlaceOrderRequest("BTC-USD", "SELL", "LIMIT", 2m, 100m);
-        var sellResponse = await sellerClient.PostAsJsonAsync("/api/orders", sell);
+        var sellResponse = await PostOrderAsync(sellerClient, sell, Guid.NewGuid().ToString());
         sellResponse.EnsureSuccessStatusCode();
 
         var buy = new PlaceOrderRequest("BTC-USD", "BUY", "LIMIT", 1m, 100m);
-        var buyResponse = await buyerClient.PostAsJsonAsync("/api/orders", buy);
+        var buyResponse = await PostOrderAsync(buyerClient, buy, Guid.NewGuid().ToString());
         buyResponse.EnsureSuccessStatusCode();
 
         var snapshotResponse = await buyerClient.GetAsync("/api/orderbook/BTC-USD?depth=10");
@@ -79,9 +84,10 @@ public class OrderBookIntegrationTests
     {
         using var factory = new WebApplicationFactory<Program>();
         var client = factory.CreateClient();
+        ApplyAuth(client, "trade");
 
         var order = new PlaceOrderRequest("BTC-USD", "BUY", "LIMIT", 1m, 100m);
-        var response = await client.PostAsJsonAsync("/api/orders", order);
+        var response = await PostOrderAsync(client, order, Guid.NewGuid().ToString());
 
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -92,9 +98,10 @@ public class OrderBookIntegrationTests
         using var factory = new WebApplicationFactory<Program>();
         var client = factory.CreateClient();
         client.DefaultRequestHeaders.Add("X-Client-Id", "client-1");
+        ApplyAuth(client, "trade");
 
         var order = new PlaceOrderRequest("BTC-USD", "BUY", "LIMIT", 101m, 100m);
-        var response = await client.PostAsJsonAsync("/api/orders", order);
+        var response = await PostOrderAsync(client, order, Guid.NewGuid().ToString());
 
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -105,9 +112,11 @@ public class OrderBookIntegrationTests
         using var factory = new WebApplicationFactory<Program>();
         var sellerClient = factory.CreateClient();
         sellerClient.DefaultRequestHeaders.Add("X-Client-Id", "seller-1");
+        ApplyAuth(sellerClient, "trade", "wallet");
 
         var buyerClient = factory.CreateClient();
         buyerClient.DefaultRequestHeaders.Add("X-Client-Id", "buyer-1");
+        ApplyAuth(buyerClient, "trade", "wallet");
 
         var sellerDeposit = await sellerClient.PostAsJsonAsync("/api/wallets/deposit", new DepositRequest("BTC", 1m));
         sellerDeposit.EnsureSuccessStatusCode();
@@ -116,15 +125,15 @@ public class OrderBookIntegrationTests
         buyerDeposit.EnsureSuccessStatusCode();
 
         var sell = new PlaceOrderRequest("BTC-USD", "SELL", "LIMIT", 1m, 100m);
-        var sellResponse = await sellerClient.PostAsJsonAsync("/api/orders", sell);
+        var sellResponse = await PostOrderAsync(sellerClient, sell, Guid.NewGuid().ToString());
         sellResponse.EnsureSuccessStatusCode();
 
         var buy = new PlaceOrderRequest("BTC-USD", "BUY", "LIMIT", 1m, 100m);
-        var buyResponse = await buyerClient.PostAsJsonAsync("/api/orders", buy);
+        var buyResponse = await PostOrderAsync(buyerClient, buy, Guid.NewGuid().ToString());
         buyResponse.EnsureSuccessStatusCode();
 
         var outOfBand = new PlaceOrderRequest("BTC-USD", "BUY", "LIMIT", 1m, 200m);
-        var outOfBandResponse = await buyerClient.PostAsJsonAsync("/api/orders", outOfBand);
+        var outOfBandResponse = await PostOrderAsync(buyerClient, outOfBand, Guid.NewGuid().ToString());
 
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, outOfBandResponse.StatusCode);
     }
@@ -135,19 +144,20 @@ public class OrderBookIntegrationTests
         using var factory = new WebApplicationFactory<Program>();
         var client = factory.CreateClient();
         client.DefaultRequestHeaders.Add("X-Client-Id", "buyer-1");
+        ApplyAuth(client, "trade", "wallet");
 
         var firstDeposit = await client.PostAsJsonAsync("/api/wallets/deposit", new DepositRequest("USD", 50m));
         firstDeposit.EnsureSuccessStatusCode();
 
         var insufficient = new PlaceOrderRequest("BTC-USD", "BUY", "LIMIT", 1m, 100m);
-        var insufficientResponse = await client.PostAsJsonAsync("/api/orders", insufficient);
+        var insufficientResponse = await PostOrderAsync(client, insufficient, Guid.NewGuid().ToString());
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, insufficientResponse.StatusCode);
 
         var secondDeposit = await client.PostAsJsonAsync("/api/wallets/deposit", new DepositRequest("USD", 100m));
         secondDeposit.EnsureSuccessStatusCode();
 
         var sufficient = new PlaceOrderRequest("BTC-USD", "BUY", "LIMIT", 1m, 100m);
-        var sufficientResponse = await client.PostAsJsonAsync("/api/orders", sufficient);
+        var sufficientResponse = await PostOrderAsync(client, sufficient, Guid.NewGuid().ToString());
         sufficientResponse.EnsureSuccessStatusCode();
 
         var balancesResponse = await client.GetAsync("/api/wallets/balances");
@@ -166,9 +176,11 @@ public class OrderBookIntegrationTests
         using var factory = new WebApplicationFactory<Program>();
         var sellerClient = factory.CreateClient();
         sellerClient.DefaultRequestHeaders.Add("X-Client-Id", "seller-1");
+        ApplyAuth(sellerClient, "trade", "wallet");
 
         var buyerClient = factory.CreateClient();
         buyerClient.DefaultRequestHeaders.Add("X-Client-Id", "buyer-1");
+        ApplyAuth(buyerClient, "trade", "wallet");
 
         var sellerDeposit = await sellerClient.PostAsJsonAsync("/api/wallets/deposit", new DepositRequest("BTC", 1m));
         sellerDeposit.EnsureSuccessStatusCode();
@@ -177,11 +189,11 @@ public class OrderBookIntegrationTests
         buyerDeposit.EnsureSuccessStatusCode();
 
         var sell = new PlaceOrderRequest("BTC-USD", "SELL", "LIMIT", 1m, 100m);
-        var sellResponse = await sellerClient.PostAsJsonAsync("/api/orders", sell);
+        var sellResponse = await PostOrderAsync(sellerClient, sell, Guid.NewGuid().ToString());
         sellResponse.EnsureSuccessStatusCode();
 
         var buy = new PlaceOrderRequest("BTC-USD", "BUY", "LIMIT", 1m, 100m);
-        var buyResponse = await buyerClient.PostAsJsonAsync("/api/orders", buy);
+        var buyResponse = await PostOrderAsync(buyerClient, buy, Guid.NewGuid().ToString());
         buyResponse.EnsureSuccessStatusCode();
 
         var sellerBalancesResponse = await sellerClient.GetAsync("/api/wallets/balances");
@@ -215,11 +227,80 @@ public class OrderBookIntegrationTests
         using var factory = new WebApplicationFactory<Program>();
         var client = factory.CreateClient();
         client.DefaultRequestHeaders.Add("X-Client-Id", "buyer-1");
+        ApplyAuth(client, "trade");
 
         var buy = new PlaceOrderRequest("BTC-USD", "BUY", "MARKET", 1m, null);
-        var response = await client.PostAsJsonAsync("/api/orders", buy);
+        var response = await PostOrderAsync(client, buy, Guid.NewGuid().ToString());
 
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Orders_require_authentication()
+    {
+        using var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Client-Id", "client-1");
+        client.DefaultRequestHeaders.Add("Idempotency-Key", Guid.NewGuid().ToString());
+
+        var order = new PlaceOrderRequest("BTC-USD", "BUY", "LIMIT", 1m, 100m);
+        var response = await client.PostAsJsonAsync("/api/orders", order);
+
+        Assert.Equal(System.Net.HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Wallets_require_authentication()
+    {
+        using var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Client-Id", "client-1");
+
+        var response = await client.GetAsync("/api/wallets/balances");
+
+        Assert.Equal(System.Net.HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Idempotency_returns_same_response_on_retry()
+    {
+        using var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Client-Id", "buyer-1");
+        ApplyAuth(client, "trade", "wallet");
+
+        var deposit = await client.PostAsJsonAsync("/api/wallets/deposit", new DepositRequest("USD", 100m));
+        deposit.EnsureSuccessStatusCode();
+
+        var order = new PlaceOrderRequest("BTC-USD", "BUY", "LIMIT", 1m, 100m);
+        var key = Guid.NewGuid().ToString();
+
+        var first = await PostOrderAsync(client, order, key);
+        first.EnsureSuccessStatusCode();
+        var firstResult = await first.Content.ReadFromJsonAsync<OrderResponse>();
+
+        var second = await PostOrderAsync(client, order, key);
+        second.EnsureSuccessStatusCode();
+        var secondResult = await second.Content.ReadFromJsonAsync<OrderResponse>();
+
+        Assert.NotNull(firstResult);
+        Assert.NotNull(secondResult);
+        Assert.Equal(firstResult!.orderId, secondResult!.orderId);
+        Assert.Equal(firstResult.remainingQuantity, secondResult.remainingQuantity);
+        Assert.Equal(firstResult.status, secondResult.status);
+    }
+
+    private static void ApplyAuth(HttpClient client, params string[] scopes)
+    {
+        var token = TestAuthToken.CreateToken(scopes);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    }
+
+    private static Task<HttpResponseMessage> PostOrderAsync(HttpClient client, PlaceOrderRequest request, string idempotencyKey)
+    {
+        client.DefaultRequestHeaders.Remove("Idempotency-Key");
+        client.DefaultRequestHeaders.Add("Idempotency-Key", idempotencyKey);
+        return client.PostAsJsonAsync("/api/orders", request);
     }
 }
 

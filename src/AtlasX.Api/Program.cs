@@ -6,7 +6,11 @@ using AtlasX.Matching;
 using AtlasX.Risk;
 using System.Diagnostics;
 using System.Net.WebSockets;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -26,6 +30,26 @@ builder.Host.UseSerilog((context, loggerConfig) =>
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(AuthConstants.SigningKey)),
+            ClockSkew = TimeSpan.FromSeconds(30)
+        };
+    });
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("trade", policy =>
+        policy.RequireAssertion(ctx => HasScope(ctx, "trade")));
+    options.AddPolicy("wallet", policy =>
+        policy.RequireAssertion(ctx => HasScope(ctx, "wallet")));
+});
 builder.Services.AddSingleton(new ConcurrentDictionary<string, OrderBook>(StringComparer.Ordinal));
 builder.Services.AddSingleton(new RiskPolicyOptions
 {
@@ -42,6 +66,7 @@ builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
 builder.Services.AddHostedService<OutboxPublisherService>();
 builder.Services.AddSingleton<MarketWebSocketManager>();
 builder.Services.AddHostedService<MarketWebSocketHeartbeatService>();
+builder.Services.AddSingleton<IdempotencyStore>();
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing =>
         tracing
@@ -62,6 +87,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseSerilogRequestLogging();
 app.Use(async (context, next) =>
 {
@@ -79,6 +107,7 @@ app.MapPrometheusScrapingEndpoint("/metrics");
 app.MapPost("/api/orders", async (
     [FromBody] PlaceOrderRequest req,
     [FromHeader(Name = "X-Client-Id")] string? clientId,
+    [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
     ConcurrentDictionary<string, OrderBook> books,
     IRiskService riskService,
     ILedgerService ledgerService,
@@ -86,52 +115,93 @@ app.MapPost("/api/orders", async (
     ConcurrentDictionary<Guid, OrderOwner> orderOwners,
     IOutbox outbox,
     MarketWebSocketManager marketWebSocketManager,
-    ILogger<Program> logger) =>
+    ILogger<Program> logger,
+    IdempotencyStore idempotencyStore) =>
 {
     if (req is null)
     {
-        return Results.BadRequest(new { errors = new[] { "Request body is required." } });
+        return Results.Json(new { errors = new[] { "Request body is required." } }, statusCode: StatusCodes.Status400BadRequest);
     }
 
     var resolvedClientId = clientId?.Trim() ?? string.Empty;
     if (string.IsNullOrWhiteSpace(resolvedClientId))
     {
-        return Results.BadRequest(new { errors = new[] { "X-Client-Id header is required." } });
+        return Results.Json(new { errors = new[] { "X-Client-Id header is required." } }, statusCode: StatusCodes.Status400BadRequest);
+    }
+
+    if (string.IsNullOrWhiteSpace(idempotencyKey))
+    {
+        return Results.Json(new { errors = new[] { "Idempotency-Key header is required." } }, statusCode: StatusCodes.Status400BadRequest);
+    }
+
+    if (idempotencyStore.TryGet(resolvedClientId, idempotencyKey, out var cached))
+    {
+        return Results.Json(cached.Payload, statusCode: cached.StatusCode);
     }
 
     var symbol = req.symbol?.Trim() ?? string.Empty;
     if (string.IsNullOrWhiteSpace(symbol))
     {
-        return Results.BadRequest(new { errors = new[] { "Symbol must be provided." } });
+        return CacheAndReturn(
+            idempotencyStore,
+            resolvedClientId,
+            idempotencyKey,
+            StatusCodes.Status400BadRequest,
+            new { errors = new[] { "Symbol must be provided." } });
     }
 
     if (!ApiHelpers.TryParseSide(req.side, out var side))
     {
-        return Results.BadRequest(new { errors = new[] { "Side must be BUY or SELL." } });
+        return CacheAndReturn(
+            idempotencyStore,
+            resolvedClientId,
+            idempotencyKey,
+            StatusCodes.Status400BadRequest,
+            new { errors = new[] { "Side must be BUY or SELL." } });
     }
 
     if (!ApiHelpers.TryParseType(req.type, out var type))
     {
-        return Results.BadRequest(new { errors = new[] { "Type must be LIMIT or MARKET." } });
+        return CacheAndReturn(
+            idempotencyStore,
+            resolvedClientId,
+            idempotencyKey,
+            StatusCodes.Status400BadRequest,
+            new { errors = new[] { "Type must be LIMIT or MARKET." } });
     }
 
     if (req.quantity <= 0)
     {
-        return Results.BadRequest(new { errors = new[] { "Quantity must be greater than zero." } });
+        return CacheAndReturn(
+            idempotencyStore,
+            resolvedClientId,
+            idempotencyKey,
+            StatusCodes.Status400BadRequest,
+            new { errors = new[] { "Quantity must be greater than zero." } });
     }
 
     if (type == OrderType.Limit)
     {
         if (req.price is null || req.price <= 0)
         {
-            return Results.BadRequest(new { errors = new[] { "Limit orders require a price greater than zero." } });
+            return CacheAndReturn(
+                idempotencyStore,
+                resolvedClientId,
+                idempotencyKey,
+                StatusCodes.Status400BadRequest,
+                new { errors = new[] { "Limit orders require a price greater than zero." } });
         }
     }
     else if (type == OrderType.Market)
     {
         if (req.price is not null)
         {
-            return Results.BadRequest(new { errors = new[] { "Market orders must not specify a price." } });
+            return CacheAndReturn(
+                idempotencyStore,
+                resolvedClientId,
+                idempotencyKey,
+                StatusCodes.Status400BadRequest,
+                new { errors = new[] { "Market orders must not specify a price." } });
         }
     }
 
@@ -145,7 +215,12 @@ app.MapPost("/api/orders", async (
 
     if (!riskResult.IsValid)
     {
-        return Results.BadRequest(new { errors = riskResult.Errors });
+        return CacheAndReturn(
+            idempotencyStore,
+            resolvedClientId,
+            idempotencyKey,
+            StatusCodes.Status400BadRequest,
+            new { errors = riskResult.Errors });
     }
 
     var accountId = accountIds.GetOrAdd(resolvedClientId, _ => new AccountId(Guid.NewGuid()));
@@ -156,7 +231,12 @@ app.MapPost("/api/orders", async (
     }
     catch (ArgumentException ex)
     {
-        return Results.BadRequest(new { errors = new[] { ex.Message } });
+        return CacheAndReturn(
+            idempotencyStore,
+            resolvedClientId,
+            idempotencyKey,
+            StatusCodes.Status400BadRequest,
+            new { errors = new[] { ex.Message } });
     }
 
     var reservationResult = ApiHelpers.TryReserveFunds(
@@ -169,7 +249,12 @@ app.MapPost("/api/orders", async (
         assetPair);
     if (!reservationResult.IsValid)
     {
-        return Results.BadRequest(new { errors = reservationResult.Errors });
+        return CacheAndReturn(
+            idempotencyStore,
+            resolvedClientId,
+            idempotencyKey,
+            StatusCodes.Status400BadRequest,
+            new { errors = reservationResult.Errors });
     }
 
     var order = new Order(
@@ -271,16 +356,30 @@ app.MapPost("/api/orders", async (
             order.RemainingQuantity);
     }
 
-    return Results.Ok(new OrderResponse(
+    var response = new OrderResponse(
         order.Id,
         status,
         order.RemainingQuantity,
-        tradeResponses));
-}).WithOpenApi(operation =>
+        tradeResponses);
+
+    return CacheAndReturn(
+        idempotencyStore,
+        resolvedClientId,
+        idempotencyKey,
+        StatusCodes.Status200OK,
+        response);
+}).RequireAuthorization("trade").WithOpenApi(operation =>
 {
     operation.Parameters.Add(new OpenApiParameter
     {
         Name = "X-Client-Id",
+        In = ParameterLocation.Header,
+        Required = true,
+        Schema = new OpenApiSchema { Type = "string" }
+    });
+    operation.Parameters.Add(new OpenApiParameter
+    {
+        Name = "Idempotency-Key",
         In = ParameterLocation.Header,
         Required = true,
         Schema = new OpenApiSchema { Type = "string" }
@@ -412,7 +511,7 @@ app.MapPost("/api/wallets/deposit", (
         Schema = new OpenApiSchema { Type = "string" }
     });
     return operation;
-});
+}).RequireAuthorization("wallet");
 
 app.MapGet("/api/wallets/balances", (
     [FromHeader(Name = "X-Client-Id")] string? clientId,
@@ -443,6 +542,29 @@ app.MapGet("/api/wallets/balances", (
         Schema = new OpenApiSchema { Type = "string" }
     });
     return operation;
-});
+}).RequireAuthorization("wallet");
 
 app.Run();
+
+static bool HasScope(AuthorizationHandlerContext context, string scope)
+{
+    var scopeValue = context.User.FindFirst("scope")?.Value;
+    if (string.IsNullOrWhiteSpace(scopeValue))
+    {
+        return false;
+    }
+
+    var scopes = scopeValue.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    return scopes.Contains(scope, StringComparer.OrdinalIgnoreCase);
+}
+
+static IResult CacheAndReturn(
+    IdempotencyStore idempotencyStore,
+    string clientId,
+    string key,
+    int statusCode,
+    object payload)
+{
+    idempotencyStore.Store(clientId, key, statusCode, payload);
+    return Results.Json(payload, statusCode: statusCode);
+}
