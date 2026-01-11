@@ -94,19 +94,20 @@ Infrastructure
 docker compose up -d
 dotnet run --project src/AtlasX.Api
 
-Swagger UI: http://localhost:5000/swagger
+```
+## Swagger UI:
+http://localhost:5000/swagger
 
-
-📡 WebSocket Market Data
+## 📡 WebSocket Market Data
 
 Use wscat to connect and receive order book snapshots and trades:
 wscat -c ws://localhost:5000/ws/market?symbol=BTC-USD
 
-🔐 Development JWT Token
+## 🔐 Development JWT Token
 
 Generate a development JWT token with scopes trade and wallet
 using PowerShell:
-
+```bash
 $secret = "atlasx-dev-secret-key-please-change"
 $header = @{ alg = "HS256"; typ = "JWT" } | ConvertTo-Json -Compress
 $payload = @{
@@ -128,14 +129,14 @@ $sig = [Convert]::ToBase64String(
 ).TrimEnd("=") -replace "\+","-" -replace "/","_"
 
 "$unsigned.$sig"
-
-⚠️ Disclaimer
+```
+## ⚠️ Disclaimer
 
 This project is for educational and demonstration purposes only.
 It is not production-ready and omits persistence, regulatory compliance,
 and security hardening required for a real exchange.
 
-📌 Why AtlasX?
+## 📌 Why AtlasX?
 
 AtlasX demonstrates how to think and design exchange systems,
 not just how to implement APIs.
