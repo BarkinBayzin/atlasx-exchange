@@ -60,6 +60,14 @@ builder.Services.AddSingleton<ILedgerService, LedgerService>();
 builder.Services.AddSingleton(new ConcurrentDictionary<string, AccountId>(StringComparer.Ordinal));
 builder.Services.AddSingleton(new ConcurrentDictionary<Guid, OrderOwner>());
 builder.Services.AddSingleton<IOutbox, InMemoryOutbox>();
+builder.Services.AddOptions<RabbitMqOptions>()
+    .Bind(builder.Configuration.GetSection("RabbitMQ"));
+builder.Services.AddSingleton<IRabbitMqConnectionManager>(sp =>
+{
+    var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<RabbitMqOptions>>().Value;
+    var logger = sp.GetRequiredService<ILogger<RabbitMqConnectionManager>>();
+    return new RabbitMqConnectionManager(options, logger);
+});
 builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
 builder.Services.AddOptions<OutboxOptions>()
     .Bind(builder.Configuration.GetSection("Outbox"));

@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
+using Microsoft.Extensions.Options;
 
 namespace AtlasX.Infrastructure;
 
@@ -11,17 +12,24 @@ public sealed class RabbitMqEventBus : IEventBus
 {
     private const string ExchangeName = "atlasx.events";
     private readonly ILogger<RabbitMqEventBus> _logger;
+    private readonly IRabbitMqConnectionManager _connectionManager;
+    private readonly RabbitMqOptions _options;
 
     /// <summary>
     /// Initializes a new instance of the event bus.
     /// </summary>
-    public RabbitMqEventBus(ILogger<RabbitMqEventBus> logger)
+    public RabbitMqEventBus(
+        IRabbitMqConnectionManager connectionManager,
+        IOptions<RabbitMqOptions> options,
+        ILogger<RabbitMqEventBus> logger)
     {
+        _connectionManager = connectionManager ?? throw new ArgumentNullException(nameof(connectionManager));
+        _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <inheritdoc />
-    public Task PublishAsync(IIntegrationEvent integrationEvent, CancellationToken cancellationToken)
+    public async Task PublishAsync(IIntegrationEvent integrationEvent, CancellationToken cancellationToken)
     {
         if (integrationEvent is null)
         {
@@ -30,34 +38,37 @@ public sealed class RabbitMqEventBus : IEventBus
 
         try
         {
-            var factory = new ConnectionFactory
-            {
-                HostName = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost"
-            };
-
-            using var connection = factory.CreateConnection();
-            using var channel = connection.CreateModel();
-
-            channel.ExchangeDeclare(ExchangeName, ExchangeType.Topic, durable: true, autoDelete: false);
-
             var payload = IntegrationEventSerializer.Serialize(integrationEvent);
             var body = Encoding.UTF8.GetBytes(payload);
-            var props = channel.CreateBasicProperties();
-            props.ContentType = "application/json";
-            props.DeliveryMode = 2;
-
+            using var channel = await _connectionManager.RentChannelAsync(cancellationToken).ConfigureAwait(false);
+            channel.ExchangeDeclare(ExchangeName, ExchangeType.Topic, durable: true, autoDelete: false);
+            channel.ConfirmSelect();
             channel.BasicPublish(
                 exchange: ExchangeName,
                 routingKey: integrationEvent.GetType().Name,
-                basicProperties: props,
+                properties: BuildProperties(channel),
                 body: body);
 
-            return Task.CompletedTask;
+            var timeoutMs = Math.Max(1, _options.ConfirmTimeoutMs);
+            if (!channel.WaitForConfirms(TimeSpan.FromMilliseconds(timeoutMs)))
+            {
+                throw new TimeoutException("RabbitMQ publish confirm timed out.");
+            }
+
+            return;
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to publish integration event {EventType}.", integrationEvent.GetType().Name);
             throw;
         }
+    }
+
+    private static IRabbitMqBasicProperties BuildProperties(IRabbitMqChannel channel)
+    {
+        var props = channel.CreateBasicProperties();
+            props.ContentType = "application/json";
+            props.DeliveryMode = 2;
+        return props;
     }
 }
