@@ -184,6 +184,18 @@ docker compose up -d
 dotnet run --project src/AtlasX.Api
 
 ```
+### Configuration Notes
+
+This demo repository ships with safe default configuration values
+for idempotency, outbox, and RabbitMQ behavior.
+
+Environment-specific settings such as RabbitMQ host, credentials,
+or development overrides should be provided via:
+- `appsettings.Development.json` (ignored by git), or
+- environment variables.
+
+No secrets are stored in this repository.
+
 ## Swagger UI:
 http://localhost:5000/swagger
 
