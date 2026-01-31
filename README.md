@@ -44,7 +44,7 @@ can be designed and implemented, including:
 
 ### Real-time & Events
 - WebSocket market data feed (order book snapshots & trades)
-- Domain events with in-memory outbox
+- Domain events with reliable in-memory outbox (leasing + retries)
 - RabbitMQ publisher (graceful fallback if unavailable)
 
 ### Observability & Security

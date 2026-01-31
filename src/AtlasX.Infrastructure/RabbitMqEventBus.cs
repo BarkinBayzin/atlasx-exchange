@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
@@ -41,7 +40,7 @@ public sealed class RabbitMqEventBus : IEventBus
 
             channel.ExchangeDeclare(ExchangeName, ExchangeType.Topic, durable: true, autoDelete: false);
 
-            var payload = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType());
+            var payload = IntegrationEventSerializer.Serialize(integrationEvent);
             var body = Encoding.UTF8.GetBytes(payload);
             var props = channel.CreateBasicProperties();
             props.ContentType = "application/json";
@@ -56,8 +55,7 @@ public sealed class RabbitMqEventBus : IEventBus
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to publish integration event {EventType}.", integrationEvent.GetType().Name);
+            throw;
         }
-
-        return Task.CompletedTask;
     }
 }

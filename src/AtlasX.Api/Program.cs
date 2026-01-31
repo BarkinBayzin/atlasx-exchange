@@ -61,6 +61,8 @@ builder.Services.AddSingleton(new ConcurrentDictionary<string, AccountId>(String
 builder.Services.AddSingleton(new ConcurrentDictionary<Guid, OrderOwner>());
 builder.Services.AddSingleton<IOutbox, InMemoryOutbox>();
 builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
+builder.Services.AddOptions<OutboxOptions>()
+    .Bind(builder.Configuration.GetSection("Outbox"));
 builder.Services.AddHostedService<OutboxPublisherService>();
 builder.Services.AddSingleton<MarketWebSocketManager>();
 builder.Services.AddHostedService<MarketWebSocketHeartbeatService>();
