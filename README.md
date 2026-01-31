@@ -204,6 +204,8 @@ http://localhost:5000/swagger
 Use wscat to connect and receive order book snapshots and trades:
 wscat -c ws://localhost:5000/ws/market?symbol=BTC-USD
 
+Note: market data is batched and throttled per connection via `WebSocket.BatchWindowMs` and `WebSocket.MaxMessagesPerSecond`.
+
 ## 🔐 Development JWT Token
 
 Generate a development JWT token with scopes trade and wallet
