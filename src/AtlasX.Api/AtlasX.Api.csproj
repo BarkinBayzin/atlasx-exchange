@@ -23,6 +23,7 @@
     <ProjectReference Include="..\AtlasX.Ledger\AtlasX.Ledger.csproj" />
     <ProjectReference Include="..\AtlasX.Risk\AtlasX.Risk.csproj" />
     <ProjectReference Include="..\AtlasX.Infrastructure\AtlasX.Infrastructure.csproj" />
+    <ProjectReference Include="..\AtlasX.Contracts\AtlasX.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

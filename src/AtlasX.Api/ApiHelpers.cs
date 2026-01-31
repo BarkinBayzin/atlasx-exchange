@@ -1,6 +1,7 @@
 using AtlasX.Matching;
 using AtlasX.Ledger;
 using AtlasX.Infrastructure;
+using AtlasX.Contracts.V1;
 
 namespace AtlasX.Api;
 

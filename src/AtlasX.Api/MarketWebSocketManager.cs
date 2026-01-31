@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using AtlasX.Contracts.V1;
 using AtlasX.Matching;
 
 namespace AtlasX.Api;
