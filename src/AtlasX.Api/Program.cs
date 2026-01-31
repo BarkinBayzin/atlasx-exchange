@@ -64,7 +64,13 @@ builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
 builder.Services.AddHostedService<OutboxPublisherService>();
 builder.Services.AddSingleton<MarketWebSocketManager>();
 builder.Services.AddHostedService<MarketWebSocketHeartbeatService>();
-builder.Services.AddSingleton<IdempotencyStore>();
+builder.Services.AddOptions<IdempotencyOptions>()
+    .Bind(builder.Configuration.GetSection("Idempotency"));
+builder.Services.AddSingleton(sp =>
+{
+    var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<IdempotencyOptions>>().Value;
+    return new IdempotencyStore(options);
+});
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing =>
         tracing

@@ -26,4 +26,8 @@
     <ProjectReference Include="..\AtlasX.Contracts\AtlasX.Contracts.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="AtlasX.Api.Tests" />
+  </ItemGroup>
+
 </Project>

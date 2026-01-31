@@ -52,6 +52,7 @@ can be designed and implemented, including:
 - OpenTelemetry tracing & metrics
 - JWT-based authentication with scope-based authorization
 - Idempotency handling for order requests
+- Idempotency retention with TTL and capacity limits
 
 ---
 ## Architecture Diagram
