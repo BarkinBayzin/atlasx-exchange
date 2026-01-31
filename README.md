@@ -244,3 +244,25 @@ and security hardening required for a real exchange.
 AtlasX demonstrates how to think and design exchange systems,
 not just how to implement APIs.
 The emphasis is on system boundaries, correctness, and extensibility.
+
+## Architecture Decision: Modular Monolith vs Microservices
+
+AtlasX is intentionally designed as an engine-first modular monolith. The matching engine, ledger, and risk checks run within a single process to keep the critical trading path deterministic and tightly controlled.
+
+**Why a single process for core trading?**
+- **Determinism and ordering:** Matching, risk, and settlement must behave predictably under load. In-process execution avoids distributed coordination, reduces timing variance, and keeps event ordering consistent.
+- **Memory locality and latency:** The order book and ledger are stateful and latency-sensitive. Co-locating them eliminates network hops and minimizes serialization overhead.
+- **Operational clarity:** Fewer moving parts make correctness, testing, and replay easier for an exchange core.
+
+**Still applying microservice principles**
+- Clear module boundaries and ownership (matching, ledger, risk, outbox, API).
+- Event-driven workflows and explicit integration events.
+- Reliable outbox patterns that decouple publishing from the main flow.
+
+**Future extraction candidates**
+- **Market data fanout** (scalable WebSocket distribution or pub/sub).
+- **Analytics and reporting** (PnL, historical data, metrics).
+- **Risk monitoring** (out-of-band surveillance and alerting).
+- **Settlement and integrations** (custody, fiat rails, external providers).
+
+This approach keeps the core deterministic and debuggable while preserving a clean path to service extraction when scale or organizational needs justify it.
