@@ -51,6 +51,8 @@ public sealed class RabbitMqEventBus : IEventBus
                 routingKey: integrationEvent.GetType().Name,
                 basicProperties: props,
                 body: body);
+
+            return Task.CompletedTask;
         }
         catch (Exception ex)
         {
